@@ -1,0 +1,599 @@
+<!DOCTYPE article PUBLIC "-//OASIS//DTD DocBook V4.1.2//EN"
+          "./docbookx.dtd">
+
+<book lang="en">
+	<bookinfo>
+		<title>PID Manager</title>
+		<subtitle>Service Documentation</subtitle>
+		<mediaobject id="m1">
+			<imageobject>
+				<imagedata align="center" fileref="./docbook/escidoc-logo.jpg"
+					format="JPG" />
+			</imageobject>
+		</mediaobject>
+		<mediaobject id="m2">
+			<imageobject>
+				<imagedata align="center" fileref="docbook/by-nc_plain300.png"
+					format="PNG" />
+			</imageobject>
+		</mediaobject>
+	</bookinfo>
+
+	<!--  General Overview  -->
+	<chapter>
+		<title>General Information</title>
+		<formalpara>
+			<title>
+				Persistent Identifier Generation and Registration
+				</title>
+		</formalpara>
+		<para>
+			The PID Manager is a web service to generate and register
+			identifiers in a persistent identifier system. A request
+			for a
+			persistent identifier (PID) leads to a generation
+			of an identifier and
+			in the second step to a
+			registration within the selected persistent
+			identifier
+			system. It is configurable which parameter is to register
+			at the PID
+			resolver via properties file. The
+			values which are to
+			register are delivered by the
+			client. The URL of resource is a
+			mandatory value of a
+			client request.
+			</para>
+		<para>
+			This service is not responsible to store the generated
+			data in
+			the eSciDoc resources. Usually will the
+			PID Manager service requested
+			by stub-methods from the
+			eSciDOc infrastructure. For eSciDoc core
+			methods take a
+			closer look in the OM documentation of the object
+			resources. The stub-methods for eSciDoc Item and eSciDoc
+			Container are
+			for example assignVersionPid() and assignObjectPid().
+			Both
+			methods
+			request this PID Manager service to generate
+			and register
+			identifier in
+			the Handle service.
+			</para>
+		<para>
+			For the persistent identifier system Handle
+			(www.handle.net) is
+			an implementation part of the
+			distribution. Connectors for other PID
+			services and
+			individual identifier generation methods could be
+			extended.
+			</para>
+		<para>
+			This application is a web service and can either be
+			deployed in a
+			application server (Tomcat) or run as
+			stand-alone service by using the
+			build in service.
+			</para>
+	</chapter>
+
+	<chapter>
+		<section id="installation">
+			<title>Installation</title>
+			<para>
+				PID Manager can either run as stand-alone application
+				(using the
+				build in service) or as
+				Servlet inside Tomcat or JBoss. Both
+				types are
+				based
+				on the same code
+				and are functional equal. The
+				preferred
+				installation type depends on
+				the existing
+				infrastructure.
+			</para>
+			<section>
+				<title>Stand-alone</title>
+				<para>
+					It is not necessary to install a whole application
+					server to
+					run this small service. Start the
+					PID Manager parallel to your
+					Handle service from
+					command line.
+				</para>
+				<para>
+					The stand-alone application is build as one jar
+					which includes
+					all depending classes and jars.
+					Excepting the configuration files
+					you can use it
+					like delivered. Of course it is also possible to
+					install the libraries in your system an build a
+					&quot;small&quot; jar.
+				</para>
+				<para>
+					Create your configuration file(s) and run the
+					service from shell with path to configuration.
+
+					<programlisting format="linespecific">
+						~> java \
+						-DCONFIG=/path/to/PidManager.properties \ -jar
+						PidManager.jar
+					</programlisting>
+				</para>
+				<para>
+					For structure of configurations see section
+					configuration files.
+				</para>
+				<para>
+					Further it is possible to run without external
+					configuration files and override the included once.
+					Alter the files in the sources and create a fat-jar
+					afterwards. With Eclipse you can use therefore the
+					Fat Jar plug-in (http://fjep.sourceforge.net/).
+				</para>
+				<para>
+					The jar-internal configuration files are used if no
+					external configuration file is set via shell
+					parameter. Because individual configuration is
+					needed for the implemented Handle Service the
+					delivered default configurations are to change to
+					local handle resolver values. If own configurations
+					are included in the (fat-) jar simple call:
+
+					<programlisting format="linespecific">
+						~> java -jar PidManager.jar
+					</programlisting>
+				</para>
+				<para>
+					This is the quite convenient way to run this service
+					parallel to your local Handle System resolver. For
+					your information, this service will not extract an
+					own Tomcat.
+				</para>
+			</section>
+			<section>
+				<title>Servlet</title>
+				<para>
+					If a Servlet-Container is already running on the
+					host you can decide to run PID Manager as Servlet or
+					stand-alone. Integration in the existing
+					Servlet-Container possibly avoids conflicts with
+					port configurations/access.
+				</para>
+				<para>
+					Alter the example configuration files and add your
+					values. Create new Web Archive by executing
+
+					<programlisting format="linespecific">
+						~> ant war
+					</programlisting>
+				</para>
+				<para>
+					Put the Web Archive file (dist/PidManager.war) into
+					the deploy directory of the application server.
+					That's it.
+				</para>
+			</section>
+		</section>
+		<section>
+			<title>Configuration</title>
+			<para>
+				Standard main configuration is the PidManager.properties
+				file. There is to configure the general service
+				parameter. All loaded RESTlet classes have it's own
+				properties files so that each resource (in meaning of
+				REST) could be configured separately.
+			</para>
+			<section>
+				<title>PidManager.properties</title>
+				<para>
+					If the PID Manager should run as stand-alone
+					application then is the port definition important.
+					Simply add the port in the following entry and
+					prevent collisions with other services.
+
+					<programlisting format="linespecific">
+						&lt;entry key="PIDManager:Port"&gt;8182&lt;/entry&gt;
+					</programlisting>
+
+					This value is ignored if the PID Manager is deployed
+					within an Application server.
+				</para>
+				<para>
+					If all resources are to protect through access
+					restrictions set RestrictAccess parameter to true
+					and configure username and password. The access
+					method is an HTTP-Access.
+
+					<programlisting format="linespecific">
+						&lt;entry key="PIDManager:RestrictAccess"&gt;true&lt;/entry&gt; 
+						&lt;entry key="PIDManager:User"&gt;pidsystem&lt;/entry&gt;
+						&lt;entry key="PIDManager:Password"&gt;handle&lt;/entry&gt;
+					</programlisting>
+				</para>
+					<para>
+					Each resource/service which is to active needs
+					following both entries. The first entry
+					('ResourceConfig') defines a configuration-name for
+					the resource. In the following example has the
+					resource the configured name 12345 (use only
+					[0-9][a-zA-Z]). With the configuration name is
+					simultaneously set the property file (with path) for
+					the resource.
+					
+					<programlisting>
+						&lt;entry key="ResourceConfig:12345"&gt;handle12345.properties&lt;/entry&gt;
+					</programlisting>
+					
+					The second entry defines the URL resource path for
+					above defined resource/service. The path is relative
+					to the deployed environment. If the PID Manager is
+					deployed as stand-alone then corresponds this path
+					with the URL path (e.g.
+					http://localhost:8182/handle/12345/). A deployment
+					within a Application server leads to a sub-path. If
+					the deployment description activates the service
+					under /PIDManager then include the service path in
+					the URL (e.g.
+					http://localhost:8080/PIDManager/handle/123458).
+					Path name, configuration name and name of
+					resource/service could differ.
+					<programlisting>
+						&lt;entry key="ResourcePath:12345"&gt;/handle/12345/&lt;/entry&gt;
+					</programlisting>
+					
+					</para>
+					<para>
+					The configured resources/services must be activated.
+					This could be done via
+					
+					<programlisting>
+						&lt;entry key="Resources"&gt;12345;MyNewService&lt;/entry&gt;
+					</programlisting>
+					
+					This is a simple comma separated list of the
+					defined resource configuration names. The Example
+					shows to activated services: 12345 and
+					MyNewService.
+					</para>
+			</section>
+
+				<section>
+				<title>Handle - Resource Configuration</title>
+				<para>
+				Resources are also configured via Java properties
+				XML files. For the included Handle service are the
+				following settings possible. With the first group
+				are special Handle parameter set.
+				
+				<programlisting format="linespecific">
+				Set the assigned global Handle prefix:
+				&lt;entry key="globalPrefix"&gt;12345&lt;/entry&gt;
+				
+				Set the Handle authentication index:
+				&lt;entry key="admin.authIndex"&gt;300&lt;/entry&gt;
+				
+				Set the Handle authentication handle
+				&lt;entry key="admin.authHandle"&gt;0.NA/12345&lt;/entry&gt;
+				
+				Set admin group index.
+				&lt;entry key="admin.group.index"&gt;200&lt;/entry&gt;
+				
+				Set path to private Admin Key file of Handle (if
+				necessary)
+				&lt;entry key="admin.privateKeyFile"&gt;
+				./WEB-INF/admpriv.bin&lt;/entry&gt;
+				
+				Set private admin passphrase (if necessary)
+				&lt;entry key="admin.passphrase"&gt;
+				--passphrase--&lt;/entry&gt;
+				
+				Set Handles time-to-life parameter:
+				&lt;entry key="ttl_relative"&gt;86400&lt;/entry&gt;
+				
+				Active debugging:
+				&lt;entry key="debug"&gt;true&lt;/entry>
+				
+				Trace all Handle resolver messages
+				&lt;entry key="debug.traceMessages"&gt;true&lt;/entry&gt;
+				</programlisting>
+				</para>
+				
+				<para>
+				The parameters of the next group determine the
+				identifier creation process.
+				
+				Set the method for identifier creation process:
+				<programlisting>
+				&lt;entry key="generatorMethod"&gt;random&lt;/entry&gt;
+				</programlisting>
+				
+				These values could be selected from a list of
+				methods:
+				<itemizedlist>
+				<listitem>
+				<para>random:</para>
+				<para>
+				create identifier based on random
+				numbers
+				</para>
+				</listitem>
+				
+				<listitem>
+				<para>serial:</para>
+				<para>
+				create a serial identifier number The
+				last serial value must be stored
+				locally. The implementation use SQLite
+				DB for local storage. The SQLite file is
+				to backup through external methods to
+				keep this information after a filesystem
+				crash.
+				</para>
+				</listitem>
+				
+				<listitem>
+				<para>semantic:</para>
+				<para>
+				Create identifier with semantic rule
+				This method usually needs additionally
+				information about the resource. The
+				resource name is in this case an
+				mantadory parameter byside the URL. The
+				eSciDoc framework stub adds the object
+				identifier automatically to the
+				parameter structure.
+				</para>
+				</listitem>
+				
+				<listitem>
+				<para>NOID:</para>
+				<para>
+				Use the NOID service to create identifier.
+				<!-- FIXME -->
+				</para>
+				</listitem>
+
+				<listitem>
+				<para>debug:</para>
+				<para>
+				This is only for test. A dummy
+				identifier is created but wil not be
+				registered in the persistent identifier
+				system/resolver.
+				</para>
+				</listitem>
+				</itemizedlist>
+				If it should be allowed for the client to override
+				some pre-defined values than set the override.method
+				paramter to true. Pre-defined values handles as
+				default.
+				<programlisting>
+				&lt;entry key="override.method"&gt;false&lt;/entry&gt;
+				</programlisting>
+				
+				Usable for example is this if in general serial
+				identifier are to create. But the client should in
+				some circumstances sematic identifier. Than is
+				method.override set to true. The client has to
+				include in the request for the cases of semantic
+				identifier the param section
+				&lt;generateMethod&gt;semantic&lt;/generateMethod&gt;
+				. All for sematic method necessary parameter are, of
+				course, to include.
+				</para>
+ 				
+				<para>
+				The coldRun parameter is useful for debug and tests.
+				If this value is activated than acts the PID Manager
+				to the client side with the standard behavior but
+				does not write values in the persistent identifier
+				system. Necessary key files will be checked as far
+				it is possible without creating a PID entry.
+				&lt;entry key="debug.coldRun"&gt;true&lt;/entry&gt;
+				This is usefull to test the communication with the
+				PID Manager without keeping attention on unqualified
+				resolver entries.
+				</para>
+			
+				</section>
+				
+				<section>
+				<title>External Configuration file</title>
+				<para>
+				For the stand-alone service it is possible set an
+				own main propertie file. To active the service with
+				an external configuration use the -D java parameter.
+				The name of the parameter is CONFIG. For command
+				line details see section Installation.
+				</para>
+				</section>
+		</section>
+	</chapter>
+
+
+		<chapter>
+		<title>Interface Methods</title>
+		
+		<para>
+		This service is currently written as RESTlet and provides
+		only a REST interface.
+		</para>
+		
+		<section>
+		<title>REST Interface Methods</title>
+		
+		<section>
+		<title>Methods and Parameter</title>
+		<para>
+		PID Manager is build with an REST oriented interface.
+		Each PID represents a resource. A HTTP GET request
+		is used to retieve a representation of an persistent
+		identifier. A PUT request creates or updates a new
+		resources. HTTP DELETE requests will remove
+		resources. The POST request is use to create new
+		resources where the identifier is create in the
+		moment of request.
+		</para>
+		<para>
+		The parameter structure is analog to the eSciDoc
+		parameters. An XML snippet is to exchange. This
+		snippet has to include all parameter which are
+		either should be stored in the persistent resolver
+		system or are needed to create the identifer (e.g.
+		if semantic rules are used).
+		</para>
+		<para>
+		Which parameter are mantadory and which optional
+		depend on the resource implementation. The included
+		Handle system interface has at minimum one mantadory
+		parameter - the URL of the resource.
+		
+		<programlisting format="linespecific">
+		&lt;param&gt;
+		   &lt;url&gt;http://escidoc.de&lt;/url&gt;
+		&lt;/param&gt;
+		</programlisting>
+		
+		The param element could be extended with a
+		last-modification-date attribute. This is passed to
+		the local Handle resolver. If last-modification-date
+		is empty or missing the service use the system time
+		for the new created entry.
+		</para>
+		<para>
+		Examples:
+		
+		<itemizedlist>
+		<listitem>
+		<programlisting format="linespecific">
+		Request: GET
+		http://localhost:8182/handle/12345/escidoc:3456
+		Response: the values of Handle identifier hdl:12345/escidoc:3456
+		&lt;param&gt;
+		   &lt;url&gt;http://somedomain/app/resource&lt;/url&gt;
+		&lt;/param&gt;
+		</programlisting>
+		</listitem>
+		<listitem>
+		<programlisting format="linespecific">
+		Request: POST
+		http://localhost:8182/handle/12345/ with request body:
+		&lt;param&gt;
+		   &lt;url&gt;http://domain/resource&lt;/url&gt;
+		&lt;/param&gt;
+		Response: This request will be responded
+		with a new generated identifier for the
+		Handle system. The identfier is
+		registrated into the resolver.
+		</programlisting>
+		</listitem>
+		</itemizedlist>
+		</para>
+		
+		<para>
+		Most of the to register parameter are not valuable
+		by these service. They will taken and process as is.
+		Please keep in mind, that especially the unified
+		resource locater does not validate the refered
+		resource.
+		</para>
+		</section>
+		
+		<section>
+		<title>Exceptions</title>
+		<para>
+		If an error occures than repsonse the service with
+		exception messages. Exception messages are common
+		HTTP responses with HTTP status code unequal 200 and
+		an XML body with description. The XML
+		exception snippet has following structure:
+
+		<programlisting format="linespecific">
+		&lt;param&gt;
+		   &lt;failure&gt;Failure Message ..&lt;/failure&gt;
+		&lt;/param&gt;
+		</programlisting>
+		
+		</para>
+		</section>
+		</section>
+		
+	</chapter>
+	<chapter>
+		<title>GWDG Handle Service</title>
+		<section>
+			<para>
+				One PID service module is able to use the GWDG Handle web service.
+				This service offers two modes to create handles within the scope
+				of GWDG. The basic mode takes the URL of the resource as one single 
+				parameter. The identifier is minted by the service.
+			</para>
+			<para>
+				The verbose mode allows to set different values by the user. This includes
+				for examples an own minted identifier.
+			</para>
+			<para>
+				Also for the GWDG Handle service are value to deliver within the XML 
+				param structure. The following example lists the supported values.
+			<pre>
+			<param>
+				<url>http://www.escidoc.org/</url>
+                <pid>11858/TEST-123456</pid>
+	            <checksum>sha1:1234567890123456789012345678901234567890</checksum>
+                <filesize>123</filesize>
+                <title>test-title</title>
+                <authors>Test Author 1, Test Author 2</authors>
+                <publication-date>2009</publication-date>
+             </param>
+            </pre></para>
+            <para>
+            	Attention: Structure, data consistency and validity are not quite well 
+            	checked by the GWDG Handle service. The PID Manager as middle ware would
+            	be a wrong place to extend this functionality, even if some values are
+            	check to prevent absurd entries. The user of this module can not rely on
+            	the service that absurd values will be rejected.
+            </para>
+            <para>
+            	The GWDG service checks if a URL is already used for another Handle. If 
+            	the same URL is already used by another Handle than is a create denied.
+            </para>
+		</section>
+	</chapter>
+	<chapter>
+		<title>Customize Service</title>
+		<section>
+			<para>
+				A general generation and Handle resolver interface is
+				part of this service. The most of the values are
+				configurable via properties, but for use cases where
+				specific methods are needed is the service extensible.
+			</para>
+			<para>
+				The PID Manager service is REST oriented and each
+				extension must be a RESTlet (www.restlet.org).
+
+				<programlisting format="linespecific">
+					public class Handle extends Restlet { 
+					
+					   @Override
+					   public void handle(Request request, Response response) {
+					     ... 
+					   } 
+					}
+				</programlisting>
+
+			</para>
+
+		</section>
+	</chapter>
+</book>

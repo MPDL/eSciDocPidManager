@@ -1,0 +1,104 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project name="eSciDoc PidManager - documentation build file" basedir=".">
+	<tstamp>
+		<format property="build.date" pattern="dd.MM.yyyy" />
+	</tstamp>
+
+	<property name="fop.install.dir" value="${basedir}/lib/fop-0.94" />
+	<property name="saxon-6.5.5.install.dir" value="${basedir}/lib/saxon-6.5.5" />
+	<property name="gen.docbook.dir" value="${basedir}/gen/documentation/" />
+	<property name="gen.pdf.dir" value="${basedir}/gen/documentation/" />
+
+	
+	<!-- Help -->
+	<target name="help">
+		<echo>Options:
+docu-pdf  - creating documentation as PDF
+clean	  - remove temporary files from build process
+help      - print this message
+dist      - creating ear</echo>
+	</target>
+
+	
+	<!-- start: build of documentation -->
+	<target name="docu-pdf">
+		<property name="document" value="./docbook/PIDManagerOverview" />
+
+		<antcall target="clean" />
+		<antcall target="prepare" />
+		
+		<antcall target="create-fo">
+			<param name="document" value="${document}" />
+			<param name="gen.docbook.dir" value="${gen.docbook.dir}" />
+			<param name="gen.pdf.dir" value="${gen.pdf.dir}" />
+		</antcall>
+		<antcall target="create-pdf">
+			<param name="document" value="${document}" />
+			<param name="gen.docbook.dir" value="${gen.docbook.dir}" />
+			<param name="gen.pdf.dir" value="${gen.pdf.dir}" />
+		</antcall>
+		
+		<echo message="------------------------------------------------------------"/>
+		<echo message="PID Manager documentation as PDF is now available under" /> 
+		<echo message="${gen.pdf.dir}${document}.pdf" /> 
+		<echo message="------------------------------------------------------------"/>
+	</target>
+	<!-- end: build of documentation -->
+
+	<!-- ========================================================== -->
+
+	<!--       common targets          -->
+	<path id="classpath">
+		<fileset dir="${fop.install.dir}" includes="**/*.jar" />
+		<fileset dir="${saxon-6.5.5.install.dir}" includes="**/*.jar" />
+		<fileset dir="../lib" includes="**/log4j-1.2.14.jar" />
+	</path>
+
+	<target name="create-fo">
+		<echo level="info">
+			Generating ${gen.docbook.dir}/${document}.fo
+		</echo>
+		<java classname="com.icl.saxon.StyleSheet" classpathref="classpath" output="${gen.docbook.dir}/${document}-create-fo.log" fork="true" dir="${gen.docbook.dir}/..">
+			<jvmarg line="-Xmx512M -Xms64m" />
+			<jvmarg line="-Dorg.apache.xerces.xni.parser.XMLParserConfiguration=org.apache.xerces.parsers.XIncludeParserConfiguration" />
+			<arg value="-o" />
+			<arg value="${gen.pdf.dir}/${document}.fo" />
+			<arg value="${basedir}/${document}.xml" />
+			<arg value="${basedir}/docbook/EscidocDocbook.xsl" />
+		</java>
+		<replace file="${gen.pdf.dir}/${document}.fo" token="{BUILD.VERSION}" value="${build.version}" />
+		<replace file="${gen.pdf.dir}/${document}.fo" token="{BUILD.DATE}" value="${build.date}" />
+	</target>
+
+	<target name="create-pdf">
+		<echo level="info">
+			Generating ${gen.pdf.dir}/${document}.pdf
+		</echo>
+		<taskdef name="fop" classname="org.apache.fop.tools.anttasks.Fop">
+			<classpath>
+				<fileset dir="${fop.install.dir}" includes="**/*.jar" />
+			</classpath>
+		</taskdef>
+		<echo level="info">
+			Creating ${gen.pdf.dir}/${document}.pdf
+		</echo>
+		<fop fofile="${gen.pdf.dir}/${document}.fo" outfile="${gen.pdf.dir}/${document}.pdf" format="pdf" />
+	</target>
+
+
+	<!-- PREPARE -->
+	<target name="prepare">
+		<mkdir dir="${gen.docbook.dir}" />
+		<mkdir dir="${gen.pdf.dir}" />
+	</target>
+
+	<!-- CLEAN -->
+	<target name="clean">
+		<delete dir="${gen.docbook.dir}" failonerror="false" />
+	</target>
+
+	<target name="clean-pre-docs">
+		<delete dir="${gen.docbook.dir}" failonerror="false" />
+	</target>
+
+</project>

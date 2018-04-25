@@ -1,0 +1,45 @@
+PID Manager
+
+See INSTALL file for installation instructions.
+See interface.txt file for interface descriptions.
+
+Call ant target 'doc' (~> ant doc) to create the pdf concept documentation 
+of the PIDManager.
+
+--------------------------------------------------------------------------------
+!!! Attention: Do not distribute private admin key (admpriv.bin) !!!
+--------------------------------------------------------------------------------
+
+If generator method is set to 'debug' then is only the suffix test-handle-123:2 
+created. This is useful to prevent depredation of namespaces through tests.
+
+--------------------------------------------------------------------------------
+The etc/ directory contains some examples for properties files.
+
+
+Building from the Source
+----------------------------
+Requirements:
+	- Installed Java Environment (>= Java 1.5)
+	- Installed Apache Ant (>= version 1.7)
+Grab the source either from the Repository or as compressed file from the web page.
+Jump to the project root directory and call ant to get an overview of all targets.
+
+~> ant
+
+ - help
+ 	Prints a brief help for each target. 
+ - doc
+ 	Compiles the documentation to pdf.
+ - jar 
+ 	Creates an Java Archive (jar) without depending libraries.
+ - onejar
+ 	Compiles the PIDManager to one jar file which includes all depending libraries.
+ - ear
+ 	Creates an Enterprise Archive (ear) with depending libraries and default 
+ 	configuration files.
+ - war
+ 	Creates an Web Archive with depending libraries and default configuration files.
+ - compile
+ 	Compiles the Java classes.
+ 	 

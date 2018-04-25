@@ -1,0 +1,15 @@
+
+etc/ contains some configuration examples
+
+PidManager.properties
+	- configure the service (change at least username and password)
+
+log4j-pidmanager.xml
+	- Logging configuration
+	 
+handle.properties
+	- use this to setup a Handle service connector
+
+gwdg.properties
+	- use this to setup a GWDG Handle service connector
+ 

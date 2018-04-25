@@ -1,0 +1,153 @@
+Application Interface
+
+The interface is REST oriented. 
+
+Resolving a PID: 
+-----------------
+
+Request:  
+ GET: /<service>/<prefix>/<suffix> 
+
+Response: 
+ HTTP XML structure for with values of the PID or Resource Not Found
+
+Example: 
+ Request: 
+ 	GET: /handle/12345/2:123:5 
+ Response: 
+ ??
+   <url>http://www.escidoc.de</url>
+
+Resolving Parameter of an PID
+-------------------------------
+
+Request:
+  GET: /<service>/<prefix>/<suffix>/<resource>
+
+Response: 
+  <resource>resource value</resource>
+
+Example: 
+ Request:
+	GET: /handle/12345/2:123:5/url
+ Response:
+    <url>http://www.escidoc.de</url>
+
+
+Add or Updating a PID with defined Suffix
+------------------------------------------ 
+Adding or updating a PID requires authentication. 
+
+Creation of an PID within the defined (PID)-namespace and the given suffix.
+
+Request:
+ PUT: /<service>/<prefix>/<suffix>
+ with RequestBody 
+ <param>
+  <url>http://some.domain/resource</url> 
+ </param>
+
+Response:
+ HTTP Status Code 200 (HTTP_OK) if create was successful. 
+ Status Code != 200 if creation failed. 
+
+Example:
+ Request:
+  PUT: /handle/12345/pid-manager-example-pid-001
+  with RequestBody
+ <param>
+  <url>http://www.escidoc.org/</url> 
+ </param>
+  
+  Response:
+  	HTTP_OK
+
+After a call of this method exists an identifier within the selected PID system 
+(e.g. hdl:12345/pid-manager-example-pid-001) which points to the URL eSciDoc 
+homepage (http://www.escidoc.org/).
+
+
+Add a PID with Suffix Creation
+---------------------------------
+Adding a PID requires authentication. 
+
+Instead of giving the identifier suffix with the request can the PIDManager service 
+create a new suffix (with defined rules). The process is called minting.   
+
+Request:
+ PUT: /<service>/<prefix>/
+ with RequestBody 
+ <param>
+  <url>http://some.domain/resource</url> 
+ </param>
+
+Response:
+ HTTP Status Code 200 (HTTP_OK) if create was successful. 
+ Status Code != 200 if creation failed. 
+
+Example:
+ Request:
+  PUT: /handle/12345/
+  with RequestBody
+ <param>
+  <url>http://www.escidoc.org/</url> 
+ </param>
+  
+  Response:
+  	HTTP_OK
+ <param>
+  <pid>the-new-minted-id</pid> 
+ </param>
+ 
+
+Without suffix generates the service a suffix. The type of suffix (sematic
+structure or random or something else) is set via parameter. If no method is
+set a default is loaded. Method overwriting is to allow via config.
+ 
+POST: /<service>/<prefix>/ generates an identifier (suffix) and assigns it
+
+Example: POST /handle/12345/ Message Body with service specific values:
+<param> <url>URL parameter</url> <adminIndex>Index of Administration</adminIndex> ..
+</param> Return: 200 OK <param> <pid>hdl:12345/somePid</pid> </param> or
+HTTP Bad Request otherwise
+ 
+The method operates as update if the resource already exist. [ to remember
+(not implemented): PUT: /<service>/<prefix>/<suffix>/[url|index] set or
+updates the parameter ]
+ 
+DELETE a PID
+------------- 
+required authentication (to configure) 
+
+DELETE: /<service>/<prefix>/<suffix>
+Return: 200 OK or Bad Request
+ 
+ 
+Resolve a PID
+---------------
+Resolving a PID and returns the values within an XML structure.
+
+Request:
+ GET: /<service>/<prefix>/<suffix>
+
+Response:
+ HTTP_OK
+ (??)
+ <pid>
+   <url>resource-url</url>
+ </pid> 
+   
+Example:
+ Request
+  GET: /handle/12345/pid-manager-example-pid-001
+ 
+ Response:
+   HTTP_OK
+   <pid>
+	 <url>http://www.escidoc.org/</url>
+   </pid>
+
+
+Update a PID
+-------------
+ 

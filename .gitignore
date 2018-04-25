@@ -1,0 +1,9 @@
+build/classes
+build/dist
+
+.project
+.metadata
+.settings/
+.classpath
+*.launch
+*~

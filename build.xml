@@ -1,0 +1,338 @@
+<project name="eSciDoc PidManager" default="help" basedir=".">
+
+	<import file="onejar/one-jar-ant-task.xml" />
+
+	<property environment="env" />
+	<loadproperties srcFile="build.properties" />
+
+	<property name="onejar.name" value="${projectname}-onejar.jar" />
+	<property name="jar.name" value="${projectname}.jar" />
+	<property name="manifest.name" value="${projectname}.mf" />
+
+	<property name="build.dir" location="${basedir}/build" />
+	<property name="build.dir.lib" location="${build.dir}/lib" />
+	<property name="classes.dir" location="${build.dir}/classes" />
+	<property name="distribution.dir" location="${build.dir}/dist" />
+
+	<!-- PID Manager parameter -->
+	<property name="pid.basedir" location="${basedir}/pidmanager" />
+	<property name="pid.src.dir" location="${pid.basedir}/java/src" />
+	<property name="pid.lib.dir" location="${pid.basedir}/lib" />
+	<property name="pid.webinf" location="${pid.basedir}/WEB-INF" />
+	<property name="pid.webinf.lib" location="${pid.webinf}/lib" />
+
+	<!-- one jar parameter -->
+	<property name="onejar.basedir" location="${basedir}/onejar" />
+	<property name="onejar.src.dir" location="${onejar.basedir}/src" />
+	<property name="onejar.lib.dir" location="${onejar.basedir}/lib" />
+
+
+	<!-- Help -->
+	<target name="help">
+		<echo>Options:
+dist   - creating distribution package
+doc    - creating documentation
+jar    - creating Java Archive (jar) file
+onejar - creating one executable Java Archive (jar) inlcuding all libraries
+		 (usefull to run PidManager as stand-alone service)
+ear    - creating an Enterprice Archive from the project
+war    - creating Web Archive (war) file
+clean  - remove build and temporary files
+help   - print this message</echo>
+	</target>
+
+	<!-- this is used to create a commen target for eSciDoc -->
+	<target name="dist" depends="define-label, doc">
+		<antcall target="ear" />
+		<antcall target="jar" />
+		<antcall target="onejar" />
+
+		<!-- creating binary zip package -->
+		<mkdir dir="${basedir}/build/zip/pid-manager-${build.version}" />
+		<copy todir="${basedir}/build/zip/pid-manager-${build.version}/bin">
+			<fileset dir="${basedir}/build/dist/bin">
+				<exclude name="**/.svn/**" />
+			</fileset>
+		</copy>
+		<copy file="${basedir}/pidmanager/doc/INSTALL" todir="${basedir}/build/zip/pid-manager-${build.version}" />
+		<copy file="${basedir}/pidmanager/doc/README" todir="${basedir}/build/zip/pid-manager-${build.version}" />
+		<copy file="${basedir}/pidmanager/doc/ChangeLog" todir="${basedir}/build/zip/pid-manager-${build.version}" />
+
+		<!-- copy docu -->
+		<copy file="${basedir}/pidmanager/doc/interface.txt" todir="${basedir}/build/zip/pid-manager-${build.version}/doc" />
+		<copy todir="${basedir}/build/zip/pid-manager-${build.version}/doc" flatten="true">
+			<fileset dir="${basedir}/pidmanager/doc/gen">
+				<exclude name="**/.svn/**" />
+				<include name="**/*.pdf" />
+			</fileset>
+		</copy>
+
+		<!-- example configs -->
+		<copy todir="${basedir}/build/zip/pid-manager-${build.version}/etc">
+			<fileset dir="${basedir}/pidmanager/etc/configExamples">
+				<exclude name="**/.svn/**" />
+			</fileset>
+		</copy>
+
+		<!-- static files -->
+		<copy todir="${basedir}/build/zip/pid-manager-${build.version}/static">
+			<fileset dir="${basedir}/pidmanager/staticFiles/static">
+				<exclude name="**/.svn/**" />
+			</fileset>
+		</copy>
+
+		
+		<zip destfile="${basedir}/build/dist/pid-manager-${build.version}.zip">
+			<fileset dir="${basedir}/build/zip" />
+		</zip>
+		<delete dir="${basedir}/build/zip" />
+	</target>
+
+	<target name="build">
+		<antcall target="ear" />
+	</target>
+
+	<target name="init">
+		<mkdir dir="${build.dir}" />
+		<mkdir dir="${classes.dir}" />
+		<mkdir dir="${distribution.dir}" />
+		<mkdir dir="${distribution.dir}/bin" />
+	</target>
+
+
+	<!-- define classpaths -->
+	<path id="pid.classpath">
+		<pathelement location="${pid.src.dir}" />
+		<fileset dir="${pid.lib.dir}">
+			<include name="**/*.jar" />
+		</fileset>
+	</path>
+
+	<path id="onejar.classpath">
+		<pathelement location="${onejar.src.dir}" />
+		<fileset dir="${onejar.lib.dir}">
+			<include name="**/*.jar" />
+		</fileset>
+	</path>
+
+	<!-- build -->
+	<target name="compile" depends="compilePid,compileOneJar" />
+
+	<target name="compilePid" depends="init">
+		<pathconvert targetos="windows" property="windowsPath" refid="pid.classpath" />
+
+		<javac destdir="${classes.dir}" target="${java.target}">
+			<src path="${pid.src.dir}" />
+			<classpath refid="pid.classpath" />
+		</javac>
+	</target>
+
+	<target name="compileOneJar" depends="init">
+		<pathconvert targetos="windows" property="windowsPath" refid="onejar.classpath" />
+
+		<javac destdir="${classes.dir}" target="${java.target}">
+			<src path="${onejar.src.dir}" />
+			<classpath refid="onejar.classpath" />
+		</javac>
+	</target>
+
+
+	<!-- build jar -->
+	<target name="jar" depends="compilePid">
+		<jar destfile="${distribution.dir}/bin/${jar.name}" manifest="${pid.basedir}/etc/${manifest.name}" index="true">
+			<fileset dir="${classes.dir}">
+				<include name="**/*.class" />
+			</fileset>
+		</jar>
+	</target>
+
+
+	<!-- build one jar -->
+	<target name="onejar" depends="compileOneJar,jar">
+		<mkdir dir="${build.dir}/lib" />
+		<copy todir="${build.dir}/lib" flatten="true">
+			<fileset dir="${pid.lib.dir}" includes="**/*.jar" />
+		</copy>
+
+		<one-jar destfile="${distribution.dir}/bin/${onejar.name}" manifest="${onejar.basedir}/onejar.mf">
+			<main>
+				<fileset dir="${classes.dir}" />
+			</main>
+			<lib>
+				<fileset file="${distribution.dir}/bin/${jar.name}" />
+				<fileset file="${build.dir.lib}/**.jar" />
+				<fileset file="${onejar.basedir}/**.jar" />
+			</lib>
+		</one-jar>
+		<echo>
+          Now you can run the ${projectname} by using 
+          $ java [-DCONFIG=configFile.xml] -jar ${onejar.name}
+        </echo>
+	</target>
+
+
+	<!-- prepare war compiling -->
+	<target name="prepare-war">
+		<mkdir dir="${pid.webinf.lib}" />
+		<copy todir="${pid.webinf.lib}" flatten="true">
+			<fileset dir="${pid.lib.dir}" includes="**/*.jar" />
+
+		</copy>
+	</target>
+
+
+	<!-- build war with default config and without key files -->
+	<target name="war" depends="prepare-war, compile">
+		<delete file="${distribution.dir}/bin/${name.package}.war" />
+		<war destfile="${distribution.dir}/bin/${name.package}.war" webxml="${pid.webinf}/web.xml">
+			<fileset dir="${pid.basedir}/staticFiles">
+				<include name="**/*" />
+				<exclude name="**/*.java" />
+				<exclude name="**/*.class" />
+			</fileset>
+
+			<lib dir="${pid.webinf.lib}">
+				<exclude name="log4j*.jar" />
+				<exclude name="javax.servlet.jar" />
+			</lib>
+			<fileset dir="${pid.webinf}">
+				<include name="**/*.default.properties" />
+				<include name="**/*.demo.properties" />
+			</fileset>
+
+			<classes dir="${classes.dir}">
+				<exclude name="com/**" />
+				<exclude name="de/escidoc/pidmanager/test/**" />
+			</classes>
+		</war>
+	</target>
+
+	<target name="deployTomcat" depends="war">
+		<delete dir="${tomcat.webapp}/${name.package}" />
+		<delete file="${tomcat.webapp}/dist/${name.package}.war" />
+		<copy file="${distribution.dir}/bin/${name.package}.war" todir="${tomcat.webapp}" />
+	</target>
+
+	<!-- build ear -->
+	<target name="ear" depends="war">
+		<mkdir dir="${build.dir}/ear" />
+		<copy file="${distribution.dir}/bin/${name.package}.war" todir="${build.dir}/ear/" />
+		<ear destfile="${distribution.dir}/bin/${name.package}.ear" appxml="${pid.basedir}/etc/metadata/application.xml">
+			<fileset dir="${build.dir}/ear" includes="*.jar,*.war" />
+		</ear>
+		<delete dir="${build.dir}/ear" />
+	</target>
+
+	<!-- copy config files to JBoss -->
+	<target name="copy-jboss-config" depends="ear">
+		<copy file="${pid.basedir}/etc/swa/jboss/handle10168.properties" todir="${jboss.configDir}" />
+		<copy file="${pid.basedir}/etc/swa/jboss/log4j-pidmanager.xml" todir="${jboss.configDir}" />
+		<copy file="${pid.basedir}/etc/swa/jboss/PidManager.properties" todir="${jboss.configDir}" />
+	</target>
+
+	<!-- Deploys and Redeploys ear file and webservices -->
+	<target name="deploy-ear" depends="ear">
+		<antcall target="deploy-ear-func">
+			<param name="action" value="redeploy" />
+			<param name="component" value="${distribution.dir}/bin/${name.package}.ear" />
+		</antcall>
+	</target>
+
+	<!-- Undeploys ear file and webservices -->
+	<target name="un-deploy-ear" depends="ear">
+		<antcall target="deploy-ear-func">
+			<param name="action" value="undeploy" />
+			<param name="component" value="${distribution.dir}/bin/${name.package}.ear" />
+		</antcall>
+	</target>
+
+	<!-- Deploy or re-deploy an EAR -->
+	<target name="deploy-ear-func">
+		<!-- undeploy | deploy | redeploy -->
+		<property name="method.name" value="${action}" />
+		<property name="deploy.arg" value="${component}" />
+		<property name="deploy.url" value="${jboss.url}/jmx-console/HtmlAdaptor?action=invokeOpByName&amp;name=jboss.system:service%3DMainDeployer&amp;methodName=${method.name}&amp;argType=java.net.URL&amp;arg0=${deploy.arg}" />
+		<echo>--${deploy.url}--</echo>
+		<waitfor maxwait="20" maxwaitunit="second" checkevery="3000" timeoutproperty="deploy.failed">
+			<http url="${deploy.url}" />
+		</waitfor>
+		<fail message="Deployment failed - Check Application Server." if="deploy.failed" />
+	</target>
+
+	<!-- include fiz config and keys -->
+	<target name="fiz-war">
+		<war destfile="${distribution.dir}/bin/${projectname}-${version}-fiz.war" webxml="WEB-INF/web.xml">
+			<fileset dir="src" />
+			<lib dir="pidmanager/lib">
+				<exclude name="log4j*.jar" />
+			</lib>
+			<fileset dir="WEB-INF/">
+				<include name="**/*.properties" />
+				<include name="**/admpriv.bin" />
+			</fileset>
+
+			<classes dir="build" />
+		</war>
+	</target>
+
+
+	<!-- create dokumentation -->
+	<target name="doc">
+		<echo message="Building documentation" />
+		<ant antfile="build.xml" target="docu-pdf" dir="./pidmanager/doc/" />
+	</target>
+
+	<!-- clean -->
+	<target name="clean">
+		<delete dir="${build.dir}/classes" />
+		<delete dir="${build.dir.lib}" />
+		<delete dir="${pid.webinf.lib}" />
+		<delete dir="${distribution.dir}" />
+		<echo message="Cleaning documentation" />
+		<ant antfile="build.xml" target="clean" dir="./pidmanager/doc/" />
+	</target>
+
+
+	<!-- 
+		Compute build.version properties (which contains version number 
+		and/or build number).
+		The build.version property consist usally of version number and build
+		numer (e.g. 1.1-build23). But this value could be over written by
+		RELEASE_LABEL property. If RELEASE_LABEL is defined, than is this 
+		value the only used label. 
+		If you want to define a release build, which has only the version 
+		number in the label, than define RELEASE_LABEL=1.x.
+		If build number and version number undefined, than is are this 
+		values set to HEAD.
+		Use ${build.version} as version label in further scripts. 
+	 -->
+	<target name="define-label">
+		<taskdef resource="net/sf/antcontrib/antcontrib.properties">
+			<classpath>
+				<pathelement location="lib/ant-contrib-1.0b1.jar" />
+			</classpath>
+		</taskdef>
+		<if>
+			<isset property="RELEASE_LABEL" />
+			<then>
+				<echo>Using ${RELEASE_LABEL} as label</echo>
+				<property name="build.version" value="${RELEASE_LABEL}" />
+			</then>
+			<else>
+				<if>
+					<isset property="env.BUILD_NUMBER" />
+					<then>
+						<echo>Using ${env.BUILD_NUMBER} as build number</echo>
+						<property name="label-suffix" value="-build${env.BUILD_NUMBER}" />
+					</then>
+					<else>
+						<echo>Using HEAD as build number</echo>
+						<property name="label-suffix" value="-buildHEAD" />
+					</else>
+				</if>
+				<property name="build.version" value="${version}${label-suffix}" />
+			</else>
+		</if>
+	</target>
+
+</project>

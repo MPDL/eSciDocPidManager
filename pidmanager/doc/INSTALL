@@ -1,0 +1,143 @@
+PIDManager Installation
+---------------------------
+
+PIDManager can either run as stand-alone application or
+as Servlet inside Tomcat or JBoss.
+
+
+Stand-alone
+------------
+Requirements:
+		- Installed Java Environment (>= Java 1.5)
+	
+The stand-alone application is build as one jar, which includes all 
+depending classes and jars. Excepting the configuration files you 
+can use it like delivered. 
+
+Create your configuration file(s) and run the service from command line
+by setting path to your configuration. 
+
+~> java -DCONFIG=<path-to-config>PIDManager.properties \
+		-jar <path-to-jar>PIDManager-onejar.jar
+
+For structure of configuration files see section Configuration.
+
+The jar file includes already a default configuration. The jar-internal 
+configuration is used if no external configuration is set via command line 
+parameter. Because individual configuration is needed for the implemented 
+Handle Service you have to override the default configuration at least
+with your local Handle resolver values.
+
+Starting the PIDManager without properties parameter creates the default 
+service where it is impossible to create PID entries. But its possible to
+test the interface.
+
+~> java -jar PIDManager.jar
+
+If you want to include, for convenience reasons, your configurations 
+instead of the default in the jar call the ant target 'create-one-jar'
+from the source distribution. 
+
+Using the stand-alone environment is the quite convenient way to run 
+this service byside of your local Handle resolver service. 
+
+Servlet
+-------
+Requirements:
+	- Installed Java Environment (>= Java 1.5)
+	- Installed ServletContainer (Tomcat) or Application Server (JBoss)
+	
+If a Servlet-Container is already running within your service environment
+you can deploy PIDManager as Servlet. 
+
+Prepare your configuration files (see configuration section), put them to 
+the conf directory of your application server and deploy the war 
+
+The Web Archive contains a default configuration where it is able to run the 
+service and test the interface but creating of PIDs within Handle or other persistent
+identifier systems is impossible.
+
+If you want to replace the default configuration against your own than build the war 
+from the source distribution. Alter the default.properties and call the 'war' ant
+target.
+
+
+General
+-------
+The PIDManager has has an example implementation to communicate 
+with a Handle resolver (www.handle.net). To create own persistent 
+identifier an base of Handle you need an own handle prefix and a 
+local resolver. 
+
+If a local handle resolver is running and the global prefix is 
+homed then configure these parameter in the PIDManager 
+configuration for the handle classes. 
+
+Do not forget to copy private key file for administration to target 
+system and give path in configuration file. 
+
+
+Configuration
+--------------
+Two configuration files are to create in minimum - one for PIDManager 
+(you configure the binding of your service here) and one for your 
+service if you use Handle as your PID service. For your 
+convenience are boilerplates of configuration files part of the distribution.
+
+
+Configuration
+--------------
+
+PidManagert is configurable via a two level. First is the PidManager as general service 
+to configure. Second configure each PID system module itself within own configuration 
+files.
+ 
+PidManager.properties:
+Setup service values here. 
+The most important section will be the resource section where each PID system module is to configure. 
+Register your PID system resource by adding the resource identifier to the semicolon separated
+list of 'Resources'. 
+	<entry key="Resources">12345;10168</entry>
+
+Afterwards create two entries for the new resource. One for the 
+configuration file and one for the service path.
+
+	<entry key="ResourceConfig:12345">./WEB-INF/handle12345.properties</entry>
+	<entry key="ResourcePath:12345">/handle/12345/</entry>
+
+In the case of the example is the resource configured via file 
+handle12345.properties in the WEB-INF directory. The resource is
+accessible via http://localhost:port/handle/12345/. If the service 
+is deployed within Tomcat the resource path is possibly expanded 
+(http://localhost:port/pidmanager/handle/12345/).
+
+handle.demo.properties:
+Use the template to configure your values.
+
+
+Service Access could be regimented by HTTP-authentication method. 
+
+
+
+Tests
+------
+To test the communication between your Application and PIDManager 
+you can set debug parameter coldRun to true 
+(<entry key="debug.coldRun">true</entry>). This avoids entries in the 
+local Handle resolver and you have not to care about wrong PID entries.
+
+If you test the whole infrastructure take care about your test identifier. 
+Maybe you can remove them - even if it against the idea of PIDs.
+
+
+Own/Additional Services
+------------------------
+This infrastructure is easy extendable. You should implement your service 
+as RESTlet class (www.restlet.org) and register it in the 
+PidManager[.default].properties.
+
+
+LOGGING
+-------------
+Create or alter log4j configuration and add file as log4j-pidmanager.xml to JBoss config directory.
+

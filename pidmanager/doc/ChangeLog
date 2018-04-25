@@ -1,0 +1,12 @@
+2009-04-16 
+	- improve package
+2009-04-06 
+	- add service connector for GWDG Handle web service
+2008-04-17
+	- add docbook build environment to create pdf-documentation
+	- fixed docu for docbook build
+	- renamed documantation-build.xml to build.xml
+	- add help to build file
+2008-04-07
+	- modified tests to read test.properties
+	- loading and overlaoding default.properties through properties

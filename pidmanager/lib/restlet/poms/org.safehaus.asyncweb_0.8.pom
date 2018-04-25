@@ -1,0 +1,21 @@
+<project>
+   <modelVersion>4.0.0</modelVersion>
+   <groupId>org.safehaus.asyncweb</groupId>
+   <artifactId>org.safehaus.asyncweb</artifactId>
+   <version>0.8.2</version>
+
+   <name>AsyncWeb framework</name>
+   <description>AsyncWeb framework.</description>
+   <licenses>
+      <license>
+         <name>CDDL license</name>
+         <url>http://www.opensource.org/licenses/cddl1.php</url>
+      </license>
+      <license>
+         <name>GPL license</name>
+         <url>
+            http://www.opensource.org/licenses/gpl-license.php
+         </url>
+      </license>
+   </licenses>
+</project>
